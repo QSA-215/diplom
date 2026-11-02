@@ -1,0 +1,544 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Объяснение XOR — последняя версия Colab</title><style>
+:root{--ink:#172b47;--muted:#61718a;--blue:#235ec9;--line:#dce4f0;--panel:#f4f7fc;--bg:#f7f9fc;--paper:#fff;--accent:#0b8a78}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font-family:"DejaVu Sans",Arial,sans-serif;color:var(--ink);line-height:1.68;font-size:15px}a{color:var(--blue)}.topbar{background:#10284d;color:#fff;padding:24px 32px;border-bottom:4px solid #3178d2}.topbar .brand{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;opacity:.8}.topbar h1{font-size:27px;margin:6px 0;line-height:1.25}.topbar p{color:#d6e2fb;margin:0}.links-config{background:#e7f0ff;border-bottom:1px solid #ccdcf4;padding:18px 28px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.links-config label{font-weight:700;font-size:14px}.links-config input{min-width:300px;max-width:650px;flex:1;border:1px solid #a9c3e8;border-radius:9px;padding:12px 14px;font-size:14px;background:white}.links-config button{background:#165dc1;border:0;color:white;border-radius:9px;padding:11px 19px;font-weight:700;cursor:pointer}.links-config small{width:100%;color:#3b5473}.links-config #status{width:100%;font-size:13px;font-weight:600;color:#2e5a8a}.layout{display:grid;grid-template-columns:275px minmax(0,950px);justify-content:center;gap:28px;padding:26px}.sidebar{position:sticky;top:15px;align-self:start;max-height:calc(100vh - 25px);overflow:auto;background:white;border:1px solid var(--line);border-radius:14px;padding:16px}.sidebar .st{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}.nav-item{display:block;color:#334965;text-decoration:none;font-size:12px;line-height:1.35;padding:8px 9px;border-radius:7px}.nav-item:hover,.nav-item:focus{background:#eaf2ff;color:#164ca9}.content{min-width:0;background:white;border:1px solid var(--line);border-radius:15px;box-shadow:0 12px 35px rgba(40,75,116,.045);padding:38px 50px 60px}.content h1{font-size:30px;letter-spacing:-.7px;line-height:1.25;margin:0 0 20px;color:#0c2e5f}.content h2{font-size:23px;line-height:1.3;letter-spacing:-.3px;margin:52px 0 16px;color:#11487f;border-bottom:1px solid #e0e7f1;padding-bottom:10px}.content h3{font-size:18px;margin:30px 0 10px;color:#174e76}.content p{margin:12px 0}.content ul,.content ol{padding-left:27px}.content li{margin:7px 0}.content blockquote{border-left:4px solid #1f7ba8;margin:20px 0;padding:12px 17px;background:#edf7fb;color:#28556b}.content blockquote p{margin:0}.content table{width:100%;border-collapse:collapse;font-size:12.5px;margin:18px 0 28px;line-height:1.45;table-layout:auto}.content th{text-align:left;background:#eaf2fe;color:#24456e;font-weight:700}.content th,.content td{border:1px solid #dce6f3;padding:9px 10px;vertical-align:top}.content tr:nth-child(even) td{background:#f8fafd}pre{background:#142238;color:#e4edff;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;padding:15px 18px;font:12px/1.55 "DejaVu Sans Mono",Consolas,monospace;overflow:auto;margin:16px 0 23px}code{font-family:"DejaVu Sans Mono",Consolas,monospace;font-size:.91em;background:#eef3fa;color:#133b74;padding:1px 4px;border-radius:4px}pre code{color:inherit;background:none;padding:0;font-size:inherit}.colab-cell-link{display:inline-flex;align-items:center;color:#085db2;background:#e6f2ff;text-decoration:none;padding:3px 9px;font-size:12px;border-radius:7px;font-weight:700;white-space:nowrap;margin:2px 0;border:1px solid #bfd7f5}.colab-cell-link:hover{background:#d4e7ff}.content strong{font-weight:750}.footer{margin-top:45px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:15px}
+@media(max-width:900px){.layout{grid-template-columns:1fr;padding:12px}.sidebar{position:static;max-height:230px}.content{padding:20px 19px}.topbar{padding:18px}.links-config{padding:12px}.links-config input{min-width:180px;width:100%}}
+@page{size:A4;margin:17mm 16mm 18mm 16mm;@bottom-center{content:"XOR • объяснение Colab     ·     страница " counter(page);color:#789;font-size:9pt}}@media print{body{background:white;color:#162742;font-size:10pt;line-height:1.48}.topbar{background:white;color:#10284d;padding:0 0 10px;border-bottom:2px solid #165dc1}.topbar .brand{color:#365474}.topbar p{color:#365474}.topbar h1{font-size:18pt}.links-config,.sidebar{display:none!important}.layout{display:block;padding:0}.content{padding:0;border:0;box-shadow:none}.content h1{font-size:18pt}.content h2{font-size:14.5pt;break-after:avoid;margin-top:20pt}.content h3{font-size:12pt;break-after:avoid}.content table{font-size:8pt;break-inside:avoid}.content td,.content th{padding:4pt 5pt}.content pre{background:#f0f4f9;color:#182b44;border:1px solid #d4dde8;font-size:8.4pt;padding:8pt;break-inside:avoid;line-height:1.5}.content pre code{color:#182b44}.content blockquote{break-inside:avoid;background:#f3f7fb}.colab-cell-link{background:none;color:#1e5a9b;font-size:8.5pt;padding:0;border:0}.footer{margin-top:20px}a{text-decoration:none}}
+</style></head><body><header class="topbar"><div class="brand">Учебный конспект · Python · Keras · NumPy</div><h1>Объяснение последнего Colab: нейросеть XOR</h1><p>Сверено с 20 ячейками файла XOR_Colab_простая_ООП.ipynb и главой 20 книги Криса Элбона</p></header><div class="links-config" id="link-input-wrapper"><label for="link-input">Адрес твоего Google Colab:</label><input type="url" id="link-input" placeholder="https://colab.research.google.com/drive/..."/><button id="save-link" type="button">Активировать ссылки</button><small>Скопируй адрес из строки браузера, пока открыт твой Colab. Дальше нажимай «Открыть ячейку» в объяснении. Адрес остаётся только в этом браузере.</small><div id="status" aria-live="polite">Вставь адрес Colab выше — ссылки к ячейкам станут кликабельными.</div></div><div class="layout"><aside class="sidebar"><div class="st">Содержание</div><a class="nav-item " href="#s1">Карта блокнота: где что находится</a><a class="nav-item " href="#s2">1. Что мы решаем: XOR</a><a class="nav-item " href="#s3">2. Импорты и обучающие данные</a><a class="nav-item " href="#s4">3. Архитектура основной сети: 2–4–1</a><a class="nav-item " href="#s5">4. Почему именно tanh, sigmoid, BCE и Adam</a><a class="nav-item " href="#s6">5. Обучение основной Keras-сети</a><a class="nav-item " href="#s7">6. Предсказание, accuracy и эпоха обучения</a><a class="nav-item " href="#s9">7. Ручной расчёт ошибок: MSE и BCE</a><a class="nav-item " href="#s10">8. Графики основной сети</a><a class="nav-item " href="#s11">9. Сравнение архитектур: что именно меняем</a><a class="nav-item " href="#s13">10. Обоснование выбора для защиты</a><a class="nav-item " href="#s14">11. ООП-реализация: зачем и как устроен класс</a><a class="nav-item " href="#s15">12. Как собственная сеть делает прямой проход</a><a class="nav-item " href="#s16">13. Обратное распространение и простой градиентный спуск</a><a class="nav-item " href="#s17">14. Как запускаем ООП-сеть и строим её графики</a><a class="nav-item " href="#s18">15. Как показывать работу на защите</a><a class="nav-item " href="#s20">16. Что именно мы взяли из книги, а что добавили сами</a><a class="nav-item " href="#s21">Итоговое объяснение одной минутой</a></aside><main class="content"><h1 id="s0">XOR: объяснение последней версии Colab</h1>
+<p><strong>Подробный разбор каждой части кода, архитектур, обучения, графиков и материала книги Криса Элбона.</strong></p>
+<blockquote>
+<p><strong>Это руководство относится именно к файлу <code>XOR_Colab_простая_ООП.ipynb</code> — 20 ячеек.</strong> Номера ниже обозначают фактический порядок ячеек (включая Markdown и код), а не номера запуска вида <code>[1]</code>. Если ты перенёс ячейки или переписал их вручную, ориентируйся также на заголовок и начало кода.</p>
+</blockquote>
+<p><strong>Как открыть нужное место:</strong> в верхней части HTML-файла вставь <strong>адрес своего открытого блокнота Google Colab</strong> (начинается с <code>https://colab.research.google.com/</code>). После этого ссылки «Открыть ячейку» рядом с разделами будут вести к конкретным ячейкам через <code>#scrollTo=...</code>. Если адрес не вставлен, ищи по заголовкам и номерам, указанным здесь. Для PDF используй номера ячеек.</p>
+<h2 id="s1">Карта блокнота: где что находится</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">Ячейка</th>
+<th>Тип</th>
+<th>Что в ней</th>
+<th>Где разбираем</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">1</td>
+<td>текст</td>
+<td>Таблица истинности XOR</td>
+<td>§1</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>код</td>
+<td>NumPy, Keras, Matplotlib и данные</td>
+<td>§2</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td>текст</td>
+<td>Идея архитектуры 2–4–1</td>
+<td>§3</td>
+</tr>
+<tr>
+<td style="text-align:right">4</td>
+<td>код</td>
+<td><code>build_model</code>, слои, <code>compile</code> и настройки</td>
+<td>§3–4</td>
+</tr>
+<tr>
+<td style="text-align:right">5</td>
+<td>текст</td>
+<td>Что происходит при обучении</td>
+<td>§5</td>
+</tr>
+<tr>
+<td style="text-align:right">6</td>
+<td>код</td>
+<td><code>fit</code>, <code>predict</code>, <code>evaluate</code>, <code>learning_epochs</code></td>
+<td>§5–6</td>
+</tr>
+<tr>
+<td style="text-align:right">7</td>
+<td>текст</td>
+<td>Формулы MSE и BCE</td>
+<td>§7</td>
+</tr>
+<tr>
+<td style="text-align:right">8</td>
+<td>код</td>
+<td>Ручной расчёт ошибок</td>
+<td>§7</td>
+</tr>
+<tr>
+<td style="text-align:right">9</td>
+<td>текст</td>
+<td>Объяснение двух графиков</td>
+<td>§8</td>
+</tr>
+<tr>
+<td style="text-align:right">10</td>
+<td>код</td>
+<td>Графики основной сети</td>
+<td>§8</td>
+</tr>
+<tr>
+<td style="text-align:right">11</td>
+<td>текст</td>
+<td>План сравнения трёх архитектур</td>
+<td>§9</td>
+</tr>
+<tr>
+<td style="text-align:right">12</td>
+<td>код</td>
+<td>Цикл экспериментов, графики и эпохи</td>
+<td>§9</td>
+</tr>
+<tr>
+<td style="text-align:right">13</td>
+<td>текст</td>
+<td>Обоснование выбранных решений</td>
+<td>§10</td>
+</tr>
+<tr>
+<td style="text-align:right">14</td>
+<td>текст</td>
+<td>Постановка задачи для ООП-сети</td>
+<td>§11</td>
+</tr>
+<tr>
+<td style="text-align:right">15</td>
+<td>код</td>
+<td>Класс <code>NeuralNetwork</code></td>
+<td>§11–13</td>
+</tr>
+<tr>
+<td style="text-align:right">16</td>
+<td>текст</td>
+<td>Зачем создаём новый объект</td>
+<td>§14</td>
+</tr>
+<tr>
+<td style="text-align:right">17</td>
+<td>код</td>
+<td>Запуск ООП-сети и результаты</td>
+<td>§14</td>
+</tr>
+<tr>
+<td style="text-align:right">18</td>
+<td>текст</td>
+<td>Пояснение графиков ООП</td>
+<td>§14</td>
+</tr>
+<tr>
+<td style="text-align:right">19</td>
+<td>код</td>
+<td>Графики собственной сети</td>
+<td>§14</td>
+</tr>
+<tr>
+<td style="text-align:right">20</td>
+<td>текст</td>
+<td>Шпаргалка для защиты</td>
+<td>§15</td>
+</tr>
+</tbody>
+</table>
+<h2 id="s2">1. Что мы решаем: XOR</h2>
+<p><strong>Ячейка 1.</strong> <a class="colab-cell-link" data-cell="f784f9c6" data-index="1" href="#link-input" title="Colab, ячейка 1, ID f784f9c6">Открыть таблицу XOR ↗</a></p>
+<p>XOR (исключающее ИЛИ) даёт <strong>1, если входы различаются</strong>, и <strong>0, если совпадают</strong>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">x₁</th>
+<th style="text-align:right">x₂</th>
+<th style="text-align:right">Правильный y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>Написать <code>int(x1 != x2)</code> было бы легко, но это <strong>готовое правило</strong>, а не машинное обучение. Мы даём сети примеры и ответы, а она сама подбирает веса и смещения. Главная педагогическая причина выбрать XOR: <strong>одной прямой нельзя отделить две единицы от двух нулей</strong>. Это называется линейной неразделимостью. Классы расположены на противоположных диагоналях квадрата.</p>
+<p>Один выходной <code>Dense(1, activation="sigmoid")</code> без скрытого слоя задаёт линейную границу решения. Поэтому контрольная модель 2–1 не способна идеально реализовать XOR. Нелинейный скрытый слой меняет ситуацию.</p>
+<p><strong>Для преподавателя:</strong> «XOR — небольшая задача бинарной классификации, удобная для демонстрации необходимости скрытых нелинейных слоёв».</p>
+<h2 id="s3">2. Импорты и обучающие данные</h2>
+<p><strong>Ячейка 2.</strong> <a class="colab-cell-link" data-cell="06a4d57c" data-index="2" href="#link-input" title="Colab, ячейка 2, ID 06a4d57c">Открыть подготовку данных ↗</a></p>
+<pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+import keras
+
+np.set_printoptions(precision=5, suppress=True)
+
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
+y = np.array([0, 1, 1, 0], dtype=np.float32)
+</code></pre>
+<ul>
+<li><code>numpy</code> (<code>np</code>) — числовые массивы и матричные операции. В ООП-реализации это единственная математическая библиотека.</li>
+<li><code>matplotlib.pyplot</code> (<code>plt</code>) — графики Loss и Accuracy.</li>
+<li><code>keras</code> — готовые слои и обучение для первой части работы.</li>
+<li><code>np.set_printoptions(...)</code> <strong>только оформляет вывод</strong>, не меняет веса или обучение. <code>precision=5</code> — число отображаемых знаков, <code>suppress=True</code> — меньше научной записи.</li>
+<li><code>X</code> имеет форму <code>(4, 2)</code>: четыре строки, два входных признака.</li>
+<li><code>y</code> имеет форму <code>(4,)</code>: четыре правильные метки.</li>
+<li><code>dtype=np.float32</code> даёт числовой формат, привычный для нейросетевых вычислений.</li>
+</ul>
+<p>Следующие <code>print</code> показывают версию Keras, используемый backend и содержимое <code>X</code>, <code>y</code>. Они нужны для диагностики и понимания данных, а не для самого обучения.</p>
+<p><strong>Почему не стандартизируем?</strong> Оба признака уже принимают только 0 и 1 и имеют одинаковый масштаб. В разделе <strong>20.1 книги</strong> объясняется польза стандартизации, но отмечается, что она не всегда необходима для бинарных признаков.</p>
+<h2 id="s4">3. Архитектура основной сети: 2–4–1</h2>
+<p><strong>Ячейки 3–4.</strong> <a class="colab-cell-link" data-cell="8d602e7f" data-index="3" href="#link-input" title="Colab, ячейка 3, ID 8d602e7f">Прочитать описание архитектуры ↗</a> · <a class="colab-cell-link" data-cell="ec7ace13" data-index="4" href="#link-input" title="Colab, ячейка 4, ID ec7ace13">Открыть код build_model ↗</a></p>
+<p>Основная модель имеет <strong>два входа → четыре скрытых нейрона <code>tanh</code> → один выходной нейрон <code>sigmoid</code></strong>. Это запись <strong>2–4–1</strong>.</p>
+<pre><code class="language-python">def build_model(hidden_layers=(4,), activation="tanh", learning_rate=0.05):
+    model = keras.Sequential(name="xor_network")
+    model.add(keras.Input(shape=(2,)))
+    for width in hidden_layers:
+        model.add(keras.layers.Dense(width, activation=activation))
+    model.add(keras.layers.Dense(1, activation="sigmoid"))
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=learning_rate),
+        loss="binary_crossentropy",
+        metrics=["accuracy"]
+    )
+    return model
+</code></pre>
+<p><strong>По строкам:</strong></p>
+<ol>
+<li><code>def build_model(...)</code> — функция-фабрика: каждый её вызов создаёт <strong>новую</strong> сеть. Это пригодится при независимых экспериментах.</li>
+<li><code>hidden_layers=(4,)</code> — по умолчанию один скрытый слой с четырьмя нейронами. Запятая в <code>(4,)</code> означает кортеж с одним элементом. <code>()</code> означало бы вообще без скрытых слоёв; <code>(6, 4)</code> — два скрытых слоя.</li>
+<li><code>keras.Sequential</code> — слои выполняются последовательно.</li>
+<li><code>keras.Input(shape=(2,))</code> — один пример состоит из двух чисел. Это не дополнительный обучаемый слой.</li>
+<li><code>for width in hidden_layers</code> — строит столько скрытых <code>Dense</code>, сколько записано в кортеже. <code>Dense</code> — полносвязный слой, где каждый его нейрон получает выходы всех нейронов предыдущего слоя.</li>
+<li><code>Dense(1, sigmoid)</code> — один выход: вероятность класса 1; порог 0,5 превратит её в 0 или 1.</li>
+<li><code>compile(...)</code> — выбор алгоритма изменения весов, функции ошибки и метрики. <code>return model</code> отдаёт созданную модель.</li>
+</ol>
+<p><strong>Сколько параметров?</strong> Первый обучаемый слой: <code>2 × 4 + 4 = 12</code> (восемь весов и четыре смещения). Второй: <code>4 × 1 + 1 = 5</code>. <strong>Итого 17 параметров.</strong> Вес — коэффициент влияния входа; смещение (<code>bias</code>) помогает сдвигать границу решения. Сеть учится изменять их, а не исполняет заранее записанный <code>if</code>.</p>
+<p>В <strong>ячейке 4</strong> параметры эксперимента заданы отдельно:</p>
+<pre><code class="language-python">HIDDEN_LAYERS = (4,)
+ACTIVATION = "tanh"
+LEARNING_RATE = 0.05
+TRAIN_EPOCHS = 500
+</code></pre>
+<p><code>TRAIN_EPOCHS=500</code> — <strong>запланированная длина обучения</strong>, а вовсе не утверждение, что для решения XOR понадобилось именно 500 эпох.</p>
+<h2 id="s5">4. Почему именно tanh, sigmoid, BCE и Adam</h2>
+<p><strong>Ячейки 3–4; объяснения также в ячейке 13.</strong> <a class="colab-cell-link" data-cell="ec7ace13" data-index="4" href="#link-input" title="Colab, ячейка 4, ID ec7ace13">Открыть параметры модели ↗</a> · <a class="colab-cell-link" data-cell="0ffb22df" data-index="13" href="#link-input" title="Colab, ячейка 13, ID 0ffb22df">Открыть обоснование ↗</a></p>
+<p>Для отдельного нейрона сначала рассчитывается взвешенная сумма <code>z = x₁w₁ + x₂w₂ + b</code>, а затем применяется функция активации <code>f(z)</code>.</p>
+<p><strong><code>tanh(z)</code> в скрытом слое:</strong> возвращает значения от −1 до 1. Эта функция нелинейная и имеет выходы по обе стороны нуля. Она позволяет сети построить нелинейную границу для XOR. Мы выбрали её как понятный рабочий вариант, а <strong>не как доказанно лучший</strong>.</p>
+<p><strong><code>sigmoid(z) = 1/(1+exp(−z))</code> на выходе:</strong> выдаёт вероятность от 0 до 1. При <code>p ≥ 0.5</code> относим пример к классу 1, иначе к классу 0. Она нужна именно потому, что у задачи два возможных класса.</p>
+<p><strong><code>ReLU(z) = max(0,z)</code></strong> появляется в истории учебных примеров и может использоваться в иных экспериментах, но в <strong>последней версии нашего блокнота её нет</strong>: мы оставили только три экспериментальные архитектуры, среди которых скрытые слои используют <code>tanh</code> либо <code>sigmoid</code>.</p>
+<p><strong><code>binary_crossentropy</code> (BCE)</strong> — функция ошибки для предсказанных вероятностей и правильных меток 0/1. Даже если класс уже правильный, BCE уменьшается по мере приближения вероятности к правильному 0 или 1.</p>
+<p><strong><code>Adam(learning_rate=0.05)</code></strong> — оптимизатор Keras. Он использует градиенты и адаптивно подбирает изменение параметров. <code>0.05</code> — достаточно крупный выбранный экспериментальный шаг; мы <strong>не доказали</strong>, что он оптимален. Важно: ООП-версия в ячейке 15 использует <strong>не Adam</strong>, а простой градиентный спуск с <code>lr=0.5</code>.</p>
+<p><strong>Почему несколько слоёв вообще помогают?</strong> Последовательность только линейных преобразований сводится к одному линейному. Нелинейные скрытые активации позволяют моделировать XOR, который линейно неразделим.</p>
+<h2 id="s6">5. Обучение основной Keras-сети</h2>
+<p><strong>Ячейки 5–6.</strong> <a class="colab-cell-link" data-cell="cb4f3db7" data-index="5" href="#link-input" title="Colab, ячейка 5, ID cb4f3db7">Прочитать пояснение ↗</a> · <a class="colab-cell-link" data-cell="9202de75" data-index="6" href="#link-input" title="Colab, ячейка 6, ID 9202de75">Открыть обучение и предсказания ↗</a></p>
+<pre><code class="language-python">model = build_model(HIDDEN_LAYERS, ACTIVATION, LEARNING_RATE)
+
+history = model.fit(
+    X, y,
+    epochs=TRAIN_EPOCHS,
+    batch_size=4,
+    verbose=0
+)
+</code></pre>
+<ul>
+<li><code>model = build_model(...)</code> создаёт <strong>свежую сеть</strong>. Именно поэтому повторный запуск <strong>всей ячейки 6</strong>, а не отдельной строки <code>fit</code>, начинает обучение с новых случайных весов.</li>
+<li><code>fit(X, y)</code> обучает на четырёх примерах, сравнивая предсказания с правильными ответами.</li>
+<li><code>epochs=500</code> — 500 проходов по всему набору.</li>
+<li><code>batch_size=4</code> — вся таблица XOR в одном пакете, то есть одна итерация обновления параметров за эпоху.</li>
+<li><code>verbose=0</code> — скрывает длинный текстовый отчёт.</li>
+<li><code>shuffle=False</code> <strong>в этой версии отсутствует</strong>. Для массива <code>X</code> перемешивание по умолчанию разрешено, но при полном пакете из четырёх строк порядок почти не влияет на градиент.</li>
+<li>Фиксированного случайного <code>seed</code> <strong>тоже нет</strong>, поэтому при разных запусках начальные веса и количество эпох могут различаться.</li>
+</ul>
+<p><strong>Что происходит внутри <code>fit</code>:</strong> прямой проход → расчёт BCE → обратное распространение градиентов → Adam обновляет веса → следующая эпоха. Keras выполняет это автоматически.</p>
+<p><strong>Важно:</strong> обучение всегда идёт на <strong>тех же четырёх строках</strong>, на которых потом считаем Accuracy. Поэтому итоговая 100% точность показывает, что сеть <strong>выучила таблицу XOR</strong>, но не является независимой проверкой на новых данных.</p>
+<h2 id="s7">6. Предсказание, accuracy и эпоха обучения</h2>
+<p><strong>Ячейка 6, вторая половина.</strong> <a class="colab-cell-link" data-cell="9202de75" data-index="6" href="#link-input" title="Colab, ячейка 6, ID 9202de75">Открыть результаты и learning_epochs ↗</a></p>
+<pre><code class="language-python">loss, accuracy = model.evaluate(X, y, verbose=0)
+probabilities = model.predict(X, verbose=0).ravel()
+classes = (probabilities &gt;= 0.5).astype(int)
+</code></pre>
+<p><code>evaluate</code> вычисляет функцию потерь и Accuracy. <code>predict</code> выдаёт вероятности класса 1. <code>ravel</code> делает массив одномерным. Условие <code>&gt;=0.5</code> превращает вероятность в правильный/неправильный класс, а <code>astype(int)</code> — в 0 или 1.</p>
+<p><strong>Accuracy</strong> — доля правильно распознанных четырёх комбинаций. Возможные значения: 0%, 25%, 50%, 75%, 100%. При 100% все четыре класса верны. <strong>Loss</strong> при этом не обязан быть нулевым: например, <code>p=0.51</code> и <code>p=0.999</code> обе дают класс 1, но разную BCE.</p>
+<h3 id="s8">Как считается количество эпох</h3>
+<p>В той же ячейке есть функция <code>learning_epochs(history_dict)</code>. Она возвращает <strong>два значения</strong>:</p>
+<ul>
+<li><code>first</code>: первая эпоха, в истории которой Accuracy стала 100%;</li>
+<li><code>stable</code>: первая эпоха, начиная с которой Accuracy оставалась 100% <strong>до последней записанной эпохи</strong>.</li>
+</ul>
+<p>Ключевые строки:</p>
+<pre><code class="language-python">scores = np.asarray(history_dict["accuracy"], dtype=float)
+good = np.isclose(scores, 1.0, rtol=0, atol=1e-8)
+first = int(np.flatnonzero(good)[0]) + 1 if np.any(good) else None
+stable_here = np.logical_and.accumulate(good[::-1])[::-1]
+stable = int(np.flatnonzero(stable_here)[0]) + 1 if np.any(stable_here) else None
+</code></pre>
+<p><code>good</code> — массив <code>True/False</code> по эпохам; <code>flatnonzero</code> находит номера подходящих значений (прибавляем 1, потому что Python считает с нуля). Конструкция с <code>logical_and.accumulate</code> проверяет, где <strong>все оставшиеся</strong> значения равны 100%. <code>None</code> значит, что нужного события в истории нет.</p>
+<p><strong>Мини-пример:</strong> Accuracy по эпохам <code>50%, 75%, 100%, 75%, 100%, 100%</code>. Тогда <code>first=3</code>, <code>stable=5</code>. Это <strong>наше условное определение устойчивости только в рамках данного запуска</strong>. Оно не гарантирует правильность на всех будущих эпохах или новых входах.</p>
+<p><strong>Если Colab пишет «устойчивая эпоха: 1»:</strong> это может означать, что модель уже разделяла все четыре класса на первой эпохе. Но сначала проверь, что запустил <strong>всю ячейку 6</strong> и создал новый объект. При фиксированном пороге Accuracy уже на старте может оказаться 100%, даже когда вероятности ещё не близки к целевым значениям.</p>
+<p><strong>Тонкость сравнения:</strong> Keras считает тренировочную Accuracy во время прохода по пакету, а собственная версия ниже записывает Accuracy <strong>после обновления параметров</strong>. Поэтому номера эпох этих двух реализаций не стоит напрямую сопоставлять как строго одинаковые измерения.</p>
+<h2 id="s9">7. Ручной расчёт ошибок: MSE и BCE</h2>
+<p><strong>Ячейки 7–8.</strong> <a class="colab-cell-link" data-cell="b56f37c3" data-index="7" href="#link-input" title="Colab, ячейка 7, ID b56f37c3">Открыть формулы ↗</a> · <a class="colab-cell-link" data-cell="66e9a86b" data-index="8" href="#link-input" title="Colab, ячейка 8, ID 66e9a86b">Открыть расчёт в коде ↗</a></p>
+<p><strong>MSE</strong> (среднеквадратичная ошибка): <code>MSE = mean((y − p)²)</code>. Например, для правильного <code>y=1</code> и вероятности <code>p=0.8</code> ошибка равна <code>(1−0.8)²=0.04</code>.</p>
+<p><strong>BCE</strong> (бинарная кросс-энтропия):</p>
+<p><code>BCE = −mean(y·ln(p) + (1−y)·ln(1−p))</code>.</p>
+<p>Например, если правильный ответ 1, то <code>BCE = −ln(p)</code>: при <code>p=0.9</code> это ≈0.105, а при <code>p=0.1</code> ≈2.303. Неверная уверенная вероятность наказывается гораздо сильнее.</p>
+<pre><code class="language-python">p = np.clip(probabilities.astype(np.float64), 1e-7, 1 - 1e-7)
+per_example_mse = (y - p) ** 2
+per_example_bce = -(y * np.log(p) + (1 - y) * np.log(1 - p))
+print(per_example_mse.mean())
+print(per_example_bce.mean())
+</code></pre>
+<p><code>np.clip</code> ограничивает вероятности и предотвращает попытку вычислить <code>ln(0)</code>. <code>mean()</code> усредняет ошибки четырёх примеров.</p>
+<p><strong>Зачем две функции?</strong> Это дополнительная учебная проверка расчёта ошибки. <strong>Обучается Keras-модель по BCE</strong>, MSE только вычисляется после обучения. Если преподаватель спрашивает «что мы минимизируем?», отвечай: <strong>BCE</strong>.</p>
+<h2 id="s10">8. Графики основной сети</h2>
+<p><strong>Ячейки 9–10.</strong> <a class="colab-cell-link" data-cell="9481707a" data-index="9" href="#link-input" title="Colab, ячейка 9, ID 9481707a">Прочитать, что показывают графики ↗</a> · <a class="colab-cell-link" data-cell="239a157d" data-index="10" href="#link-input" title="Colab, ячейка 10, ID 239a157d">Открыть построение графиков ↗</a></p>
+<pre><code class="language-python">epochs = np.arange(1, len(history.history["loss"]) + 1)
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+axes[0].plot(epochs, history.history["loss"])
+axes[1].plot(epochs, history.history["accuracy"])
+</code></pre>
+<p><code>epochs</code> — номера эпох от 1 до 500. <code>plt.subplots(1,2)</code> создаёт <strong>два графика в одной строке</strong>. <code>axes[0]</code> — Loss; <code>axes[1]</code> — Accuracy. <code>axes[i].set(...)</code> задаёт заголовки и подписи. <code>ylim=(-0.05,1.05)</code> оставляет запас вокруг верхней границы 1. <code>tight_layout</code> подгоняет отступы, <code>show</code> отображает рисунок.</p>
+<ul>
+<li><strong>Loss снижается</strong> — вероятности приближаются к правильным меткам.</li>
+<li><strong>Accuracy растёт ступенями</strong> — примеров лишь четыре; каждый правильно классифицированный пример добавляет 25 процентных пунктов.</li>
+<li>Вертикальная <strong>пунктирная линия</strong> (<code>axvline(stable_epoch, ...)</code>) показывает нашу эпоху устойчивого достижения 100%. Линия появляется, только если <code>stable_epoch is not None</code>.</li>
+</ul>
+<p><strong>Не путай:</strong> запланированные 500 эпох — длина графика; <code>stable_epoch</code> — метка момента, начиная с которого все дальнейшие записи Accuracy равны 100%. Loss может продолжать уменьшаться и после этой линии.</p>
+<p><strong>Что сказать вслух:</strong> «Слева показана динамика бинарной кросс-энтропии, справа — доля правильных классификаций. Пунктир отмечает эпоху устойчивого решения всех четырёх случаев XOR в данном запуске».</p>
+<h2 id="s11">9. Сравнение архитектур: что именно меняем</h2>
+<p><strong>Ячейки 11–12.</strong> <a class="colab-cell-link" data-cell="1e708557" data-index="11" href="#link-input" title="Colab, ячейка 11, ID 1e708557">Открыть план экспериментов ↗</a> · <a class="colab-cell-link" data-cell="9fdbc69b" data-index="12" href="#link-input" title="Colab, ячейка 12, ID 9fdbc69b">Открыть цикл сравнения ↗</a></p>
+<p><strong>Здесь ровно три дополнительных Keras-эксперимента.</strong> Вместе с основной сетью <code>2–4–1 tanh</code> из раздела 3 блокнот показывает <strong>четыре конфигурации в сумме</strong> — это важно при ответе на вопрос «сколько сетей в работе?».</p>
+<table>
+<thead>
+<tr>
+<th>Конфигурация</th>
+<th>Скрытые слои</th>
+<th>Активации</th>
+<th>Для чего</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Основная 2–4–1</strong></td>
+<td>один слой, 4</td>
+<td><code>tanh</code> → <code>sigmoid</code></td>
+<td>Базовая обучаемая модель</td>
+</tr>
+<tr>
+<td><strong>Контроль 2–1</strong></td>
+<td>нет</td>
+<td>только выход <code>sigmoid</code></td>
+<td>Показать ограничение линейной границы</td>
+</tr>
+<tr>
+<td><strong>Эксперимент 2–4–1</strong></td>
+<td>один слой, 4</td>
+<td><code>sigmoid</code> → <code>sigmoid</code></td>
+<td>Сравнить с основной при той же ширине</td>
+</tr>
+<tr>
+<td><strong>Собственная 2–6–4–1</strong></td>
+<td>два слоя: 6 и 4</td>
+<td><code>tanh</code>, <code>tanh</code> → <code>sigmoid</code></td>
+<td>Проверить влияние глубины и размера</td>
+</tr>
+</tbody>
+</table>
+<p>В цикле <code>for name, hidden, activation, reason in experiments:</code> для каждой конфигурации вызываются <code>build_model</code>, <code>fit</code> и <code>learning_epochs</code>. Затем печатаются количество скрытых слоёв, число нейронов, активации, объяснение выбора и эпоха. <strong>Сразу после этого строится отдельная пара графиков Loss и Accuracy для каждого варианта.</strong> В конце выводится краткое сравнение эпох.</p>
+<p><strong>Важно про контроль 2–1:</strong> параметр <code>hidden=()</code> не создаёт ни одного скрытого слоя; указанный в записи эксперимента <code>tanh</code> в действительности <strong>не применяется</strong>, потому что цикл по скрытым слоям пуст.</p>
+<p><strong>Параметры Keras в цикле общие:</strong> таблица XOR, <code>TRAIN_EPOCHS=500</code>, <code>batch_size=4</code>, <code>BCE</code>, <code>Adam(lr=0.05)</code>, порог Accuracy 100%. Начальные веса случайные; без фиксированного seed результат может меняться. Это единый бюджет эксперимента, но сравнение на одном запуске не доказывает, что какая-то архитектура всегда лучше.</p>
+<h3 id="s12">Как объяснить каждый эксперимент</h3>
+<p><strong>Контроль 2–1.</strong> Один выходной нейрон без скрытых нелинейных преобразований не может идеально разделить XOR. Если сеть не достигла 100% до окончания лимита, выводим «не обучилась за 500 эпох», а не «вообще никогда не обучится» (строже: для этой архитектуры XOR математически неразделим).</p>
+<p><strong>2–4–1, sigmoid.</strong> Та же ширина, что у основной <code>2–4–1 tanh</code>, но другая функция скрытого слоя. Это наиболее чистая из наших пар для сравнения влияния активации — хотя случайная инициализация всё равно влияет.</p>
+<p><strong>2–6–4–1, tanh.</strong> Два скрытых слоя из 6 и 4 нейронов — наш эксперимент с более глубокой архитектурой. Проверяем, изменится ли число эпох. Для XOR такая глубина <strong>не обязательна</strong>, она не объявляется «лучшей» заранее.</p>
+<h2 id="s13">10. Обоснование выбора для защиты</h2>
+<p><strong>Ячейка 13.</strong> <a class="colab-cell-link" data-cell="0ffb22df" data-index="13" href="#link-input" title="Colab, ячейка 13, ID 0ffb22df">Открыть готовые выводы ↗</a></p>
+<p>Самая сильная короткая логика обоснования:</p>
+<ol>
+<li><strong>Два входа</strong> — потому что XOR получает два бита.</li>
+<li><strong>Один выход с <code>sigmoid</code></strong> — потому что целевой класс один из двух (0/1), и нам удобна вероятность класса 1.</li>
+<li><strong>Скрытый нелинейный слой</strong> — потому что XOR линейно неразделима.</li>
+<li><strong>4 нейрона и <code>tanh</code> в основной модели</strong> — простой и наглядный рабочий выбор, а не найденный глобальный оптимум.</li>
+<li><strong>BCE</strong> — функция потерь для бинарной вероятностной классификации.</li>
+<li><strong>Adam</strong> — удобный оптимизатор, адаптирующий обновления весов. Скорость 0.05 — выбранный для учебного эксперимента гиперпараметр.</li>
+<li><strong>Другие архитектуры</strong> — требование сравнить количество нейронов, слоёв и активации, а не желание усложнить программу «для красоты».</li>
+<li><strong>Эпохи и графики</strong> — основа сравнения; если Accuracy всех обучившихся равна 100%, сама итоговая Accuracy не различает скорость обучения.</li>
+</ol>
+<p><strong>Сколько весов у 2–6–4–1?</strong> Переход <code>2→6</code>: <code>2×6+6=18</code>; <code>6→4</code>: <code>6×4+4=28</code>; <code>4→1</code>: <code>4×1+1=5</code>. Итого <strong>51 обучаемый параметр</strong>, то есть <strong>три обучаемых Dense-слоя</strong>. «Два скрытых слоя» и «три обучаемых слоя» не противоречат друг другу: третий — выходной.</p>
+<p><strong>Чего НЕ утверждаем:</strong> что глубокая сеть всегда лучше, что ReLU участвовала в нашем текущем сравнении, что одна архитектура статистически победила по единственному запуску, что 100% Accuracy на тренировочных четырёх точках означает обобщение на новые данные.</p>
+<h2 id="s14">11. ООП-реализация: зачем и как устроен класс</h2>
+<p><strong>Ячейки 14–15.</strong> <a class="colab-cell-link" data-cell="5871cd5f" data-index="14" href="#link-input" title="Colab, ячейка 14, ID 5871cd5f">Прочитать постановку ООП-задачи ↗</a> · <a class="colab-cell-link" data-cell="e593248b" data-index="15" href="#link-input" title="Colab, ячейка 15, ID e593248b">Открыть класс NeuralNetwork ↗</a></p>
+<p>В этом разделе <strong>Keras вообще не используется</strong>: нейронная сеть написана как Python-класс <code>NeuralNetwork</code>, а NumPy выполняет матричные операции. Это показывает, как работает сеть внутри, а не только как вызвать готовую библиотеку.</p>
+<p>Архитектура фиксирована: <strong>2–4–1</strong>, скрытая активация <strong><code>tanh</code></strong>, выходная <strong><code>sigmoid</code></strong>. В отличие от функции <code>build_model</code>, этот класс <strong>не умеет произвольно менять архитектуру</strong> — и это специально, чтобы код было проще разбирать.</p>
+<p><strong>Конструктор <code>__init__</code>:</strong></p>
+<pre><code class="language-python">self.w1 = np.random.randn(2, 4) * np.sqrt(2 / (2 + 4))
+self.b1 = np.zeros((1, 4))
+self.w2 = np.random.randn(4, 1) * np.sqrt(2 / (4 + 1))
+self.b2 = np.zeros((1, 1))
+</code></pre>
+<p><code>self</code> означает текущий экземпляр класса. <code>w1</code> — матрица 2×4 для перехода «вход → скрытый», <code>b1</code> — четыре смещения; <code>w2</code> — матрица 4×1 «скрытый → выход», <code>b2</code> — одно смещение. Веса сначала случайные, смещения нулевые. Небольшое масштабирование случайных весов облегчает старт обучения.</p>
+<p><strong>Метод <code>sigmoid</code>:</strong></p>
+<pre><code class="language-python">def sigmoid(self, z):
+    return 1 / (1 + np.exp(-np.clip(z, -500, 500)))
+</code></pre>
+<p><code>np.clip</code> здесь защищает вычисление экспоненты от чрезмерно больших по модулю аргументов. Это числовая защита, не новая нейронная архитектура.</p>
+<h2 id="s15">12. Как собственная сеть делает прямой проход</h2>
+<p><strong>Ячейка 15, метод <code>forward</code>.</strong> <a class="colab-cell-link" data-cell="e593248b" data-index="15" href="#link-input" title="Colab, ячейка 15, ID e593248b">Открыть forward ↗</a></p>
+<pre><code class="language-python">def forward(self, X):
+    hidden = np.tanh(X @ self.w1 + self.b1)
+    output = self.sigmoid(hidden @ self.w2 + self.b2)
+    return hidden, output
+</code></pre>
+<p>Знак <code>@</code> — <strong>матричное умножение</strong>.</p>
+<p>При подаче всей таблицы <code>X</code> размера <strong>4×2</strong>:</p>
+<ol>
+<li><code>X @ w1</code>: <code>(4×2) @ (2×4) → 4×4</code> — значения скрытых нейронов для каждого примера;</li>
+<li><code>+ b1</code>: прибавляем четыре смещения к каждой строке;</li>
+<li><code>np.tanh</code>: нелинейные скрытые активации, матрица остаётся 4×4;</li>
+<li><code>hidden @ w2</code>: <code>(4×4) @ (4×1) → 4×1</code>;</li>
+<li><code>+ b2</code>, затем <code>sigmoid</code>: четыре выходные вероятности, по одной на строку.</li>
+</ol>
+<p>Мы возвращаем <strong>оба</strong> результата, поскольку <code>hidden</code> понадобится при вычислении градиентов. Метод <code>predict</code> берёт вероятности из <code>forward(X)[1]</code> и применяет порог <code>&gt;= 0.5</code>.</p>
+<h2 id="s16">13. Обратное распространение и простой градиентный спуск</h2>
+<p><strong>Ячейка 15, метод <code>fit</code>.</strong> <a class="colab-cell-link" data-cell="e593248b" data-index="15" href="#link-input" title="Colab, ячейка 15, ID e593248b">Открыть цикл обучения класса ↗</a></p>
+<pre><code class="language-python">def fit(self, X, y, epochs=2500, lr=0.5):
+    y = np.asarray(y).reshape(-1, 1)
+    history = {"loss": [], "accuracy": []}
+
+    for _ in range(epochs):
+        hidden, output = self.forward(X)
+        delta2 = (output - y) / len(X)
+        dw2 = hidden.T @ delta2
+        db2 = np.sum(delta2, axis=0, keepdims=True)
+        delta1 = (delta2 @ self.w2.T) * (1 - hidden**2)
+        dw1 = X.T @ delta1
+        db1 = np.sum(delta1, axis=0, keepdims=True)
+        self.w1 -= lr * dw1
+        self.b1 -= lr * db1
+        self.w2 -= lr * dw2
+        self.b2 -= lr * db2
+</code></pre>
+<p><strong>Пошагово:</strong></p>
+<ol>
+<li><code>y.reshape(-1,1)</code> делает правильные ответы столбцом 4×1, как и предсказания <code>output</code>.</li>
+<li><code>for</code> выполняет указанные <code>epochs=2500</code> итераций; одна итерация обрабатывает все четыре примера и делает одно обновление параметров.</li>
+<li><code>delta2 = (output-y)/len(X)</code> — удобное упрощение производной <strong>BCE + sigmoid</strong> на выходе; делим на 4, потому что ошибка усредняется по четырём наблюдениям.</li>
+<li><code>dw2 = hidden.T @ delta2</code> и <code>db2 = sum(delta2)</code> вычисляют градиенты выходного слоя.</li>
+<li><code>delta1 = (delta2 @ w2.T) * (1-hidden**2)</code> распространяет ошибку назад через скрытый слой. Множитель <code>1-hidden**2</code> — производная <code>tanh</code>, когда <code>hidden = tanh(z)</code>.</li>
+<li><code>dw1</code>, <code>db1</code> — градиенты первого обучаемого слоя.</li>
+<li><code>w -= lr * dw</code> и <code>b -= lr * db</code> — <strong>обычный градиентный спуск</strong>, то есть изменение весов и смещений в направлении уменьшения ошибки.</li>
+</ol>
+<p>Здесь <strong>не Adam</strong>: нет накопительных моментов градиентов. Это существенно облегчает защиту. <code>lr=0.5</code> отличается от Keras <code>0.05</code>, поэтому прямой рейтинг «ООП быстрее Keras» некорректен.</p>
+<p><strong>После изменения весов</strong> выполняются повторный <code>forward</code>, расчёт BCE и Accuracy; оба числа добавляются в <code>history</code>. Следовательно, для ООП-класса история записывается по состоянию <strong>после каждого обновления</strong>.</p>
+<h2 id="s17">14. Как запускаем ООП-сеть и строим её графики</h2>
+<p><strong>Ячейки 16–19.</strong> <a class="colab-cell-link" data-cell="5ad3610a" data-index="17" href="#link-input" title="Colab, ячейка 17, ID 5ad3610a">Открыть запуск ООП ↗</a> · <a class="colab-cell-link" data-cell="505a99af" data-index="19" href="#link-input" title="Colab, ячейка 19, ID 505a99af">Открыть графики ООП ↗</a></p>
+<pre><code class="language-python">network_oop = NeuralNetwork()
+history_oop = network_oop.fit(X, y, epochs=2500, lr=0.5)
+
+p_oop = network_oop.forward(X)[1].ravel()
+pred_oop = network_oop.predict(X).ravel()
+</code></pre>
+<p>Создаётся <strong>новый объект</strong> с новыми случайными весами. Затем он учится на той же таблице. Выводятся архитектура, оптимизатор, правильные и предсказанные классы, итоговая BCE и Accuracy.</p>
+<pre><code class="language-python">_, oop_stable = learning_epochs(history_oop)
+</code></pre>
+<p>Мы используем <strong>ту же</strong> ранее объявленную функцию <code>learning_epochs</code>, но передаём словарь <code>history_oop</code> (у Keras история лежит в <code>history.history</code>). Подчёркивание означает «первое значение вернулось, но сейчас оно не нужно».</p>
+<p><strong>Ячейка 19</strong> строит две кривые из <code>history_oop["loss"]</code> и <code>history_oop["accuracy"]</code> по 2500 эпохам. Если получено значение <code>oop_stable</code>, рисуется пунктир. Графики выполняют то же требование, что и графики Keras, но для собственной реализации.</p>
+<p><strong>Что на защите:</strong> «В первой части Keras сам вычисляет и обновляет веса при помощи Adam; здесь я вручную реализовал прямой проход, обратное распространение и обычный градиентный спуск в Python-классе».</p>
+<h2 id="s18">15. Как показывать работу на защите</h2>
+<p><strong>Ячейка 20</strong> содержит краткий план выступления. <a class="colab-cell-link" data-cell="5bc5f3f6" data-index="20" href="#link-input" title="Colab, ячейка 20, ID 5bc5f3f6">Открыть шпаргалку ↗</a></p>
+<p><strong>Порядок демонстрации:</strong></p>
+<ol>
+<li>Открой таблицу XOR (<strong>ячейка 1</strong>) и скажи, почему без нелинейного скрытого слоя задача не решается идеально.</li>
+<li>Покажи базовую архитектуру и её настройки (<strong>ячейки 3–4</strong>): 2 входа, 4 <code>tanh</code>, 1 <code>sigmoid</code>, BCE, Adam.</li>
+<li>Покажи предсказания и число эпох (<strong>ячейка 6</strong>). Объясни разницу между запланированными 500 эпохами и <code>stable_epoch</code>.</li>
+<li>Покажи две кривые основной модели (<strong>ячейка 10</strong>).</li>
+<li>Пройди по трём экспериментам (<strong>ячейка 12</strong>): у каждого архитектура, активация, пара графиков и эпоха успешного обучения или её отсутствие.</li>
+<li>Покажи свой простой класс (<strong>ячейка 15</strong>), особенно <code>forward</code>, <code>delta2</code>, <code>delta1</code> и обновления <code>w -= lr * dw</code>.</li>
+<li>Покажи результаты и графики собственной сети (<strong>ячейки 17 и 19</strong>).</li>
+</ol>
+<h3 id="s19">Пять вопросов, которые стоит отрепетировать</h3>
+<p><strong>Почему нужен скрытый слой?</strong> XOR линейно неразделима; нелинейный скрытый слой позволяет построить необходимую границу.</p>
+<p><strong>Почему <code>sigmoid</code> на выходе?</strong> Нам требуется вероятность одного из двух классов; порог 0,5 даёт предсказанный 0 или 1.</p>
+<p><strong>Почему BCE, а не только Accuracy?</strong> Accuracy оценивает уже пороговые классы, а BCE чувствительна к величинам вероятностей и подходит для оптимизации.</p>
+<p><strong>Почему именно 2–6–4–1?</strong> Чтобы проверить влияние второго скрытого слоя. Это экспериментальный более глубокий вариант, а не заведомо оптимальная архитектура XOR.</p>
+<p><strong>Почему числа эпох разнятся при перезапуске?</strong> Начальные веса случайные и в коде нет фиксированного seed; достижение 100% зависит от траектории обучения. Кроме того, Keras и ООП имеют разные оптимизаторы и скорости обучения.</p>
+<h2 id="s20">16. Что именно мы взяли из книги, а что добавили сами</h2>
+<p><strong>Книга:</strong> Крис Элбон, <em>«Машинное обучение с использованием Python. Сборник рецептов»</em>, БХВ-Петербург, 2019, глава 20 «Нейронные сети».</p>
+<table>
+<thead>
+<tr>
+<th>Раздел книги</th>
+<th>Где искать</th>
+<th>Что применили в работе</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20.1. Предобработка данных</td>
+<td>стр. 318–319</td>
+<td>Обсуждение необходимости общего масштаба признаков; XOR уже бинарен</td>
+</tr>
+<tr>
+<td>20.2. Проектирование нейронной сети</td>
+<td>стр. 320–322</td>
+<td><code>Sequential</code>, <code>Dense</code>, скрытые и выходные слои, функции активации</td>
+</tr>
+<tr>
+<td>20.3. Тренировка бинарного классификатора</td>
+<td>стр. 323–324</td>
+<td><code>compile</code>, <code>fit</code>, бинарная классификация, метрика точности</td>
+</tr>
+<tr>
+<td>20.6. Выполнение предсказаний</td>
+<td>стр. 329–330</td>
+<td><code>predict</code> для получения вероятностей класса</td>
+</tr>
+<tr>
+<td>20.7. Визуализация истории тренировки</td>
+<td>стр. 331–333</td>
+<td>Графики Loss и Accuracy на основе <code>history</code></td>
+</tr>
+</tbody>
+</table>
+<p>В примерах книги бинарная классификация рассматривается, в частности, на <strong>отзывах о фильмах</strong>, а не на XOR. Книга использует более старую версию Keras и местами другой оптимизатор, например <code>rmsprop</code>. Мы перенесли <strong>подход</strong>, а не копировали в точности её исходные наборы данных и конфигурации.</p>
+<p><strong>То, что было нашим выбором по заданию:</strong> сама задача XOR; конкретные архитектуры 2–1, 2–4–1 и 2–6–4–1; <code>tanh</code> для базовой и глубокой модели; Adam с шагом 0.05; функция <code>learning_epochs</code>; отдельная ООП-реализация через NumPy и простой градиентный спуск. Конкретные числа эпох не даны книгой: их выводит твоя программа во время запуска.</p>
+<h2 id="s21">Итоговое объяснение одной минутой</h2>
+<p>«Я решал задачу XOR на Python двумя способами. Сначала сделал полносвязную сеть Keras с архитектурой 2–4–1: два бинарных входа, четыре скрытых нейрона <code>tanh</code> и один выход <code>sigmoid</code>. Обучал её по бинарной кросс-энтропии оптимизатором Adam. Показал четыре предсказания, графики Loss и Accuracy и определил эпоху, с которой точность на всех четырёх комбинациях оставалась 100% до конца запуска. Затем сравнил три дополнительные архитектуры: контрольную 2–1 без скрытого слоя, 2–4–1 с <code>sigmoid</code> и собственную более глубокую 2–6–4–1 с <code>tanh</code>. Наконец, написал отдельный класс <code>NeuralNetwork</code> с фиксированной сетью 2–4–1, где самостоятельно реализовал матричный прямой проход, обратное распространение и обычный градиентный спуск. Главный вывод: для XOR нужен нелинейный скрытый слой, а более сложная архитектура не обязательно обучается быстрее».</p>
+<p><strong>Практический совет:</strong> перед защитой сделай один полный запуск <strong>«Среда выполнения → Выполнить все»</strong> и используй <strong>эпохи и графики именно этого запуска</strong>, а не старые числа из чужой проверки.</p>
+<div class="footer">Основа: ваш последний блокнот XOR_Colab_простая_ООП.ipynb и К. Элбон, «Машинное обучение с использованием Python», глава 20 (2019). Данные реального запуска нужно брать из вашего Colab; здесь не подставляются вымышленные эпохи.</div></main></div><script>
+(function(){
+ const input=document.getElementById('link-input'),status=document.getElementById('status');
+ const links=[...document.querySelectorAll('.colab-cell-link')];
+ function setBase(raw){
+  const val=raw.trim();
+  if(!val){for(const a of links){a.href='#link-input';a.dataset.ready='0'}status.textContent='Вставь адрес Colab выше — ссылки к ячейкам станут кликабельными.';return false;}
+  let parsed;try{parsed=new URL(val)}catch(e){status.textContent='Адрес не распознан. Скопируй полную ссылку из адресной строки Colab.';return false;}
+  if(parsed.protocol!=='https:'||parsed.hostname!=='colab.research.google.com'){
+   status.textContent='Нужна ссылка именно с colab.research.google.com (не ссылка на Google Drive).';return false;
+  }
+  let base=parsed.origin+parsed.pathname+parsed.search;
+  for(const a of links){a.href=base+'#scrollTo='+encodeURIComponent(a.dataset.cell);a.target='_blank';a.rel='noopener noreferrer';a.dataset.ready='1'}
+  status.textContent='Готово: ссылки ведут на ячейки твоего блокнота (при сохранённых ID ячеек).';
+  try{localStorage.setItem('xorGuideColabUrl',base)}catch(e){};
+  return true;
+ }
+ document.getElementById('save-link').addEventListener('click',()=>setBase(input.value));
+ input.addEventListener('keydown',e=>{if(e.key==='Enter')setBase(input.value)});
+ for(const a of links){a.addEventListener('click',e=>{if(a.dataset.ready!=='1'){e.preventDefault();document.getElementById('link-input').scrollIntoView({behavior:'smooth',block:'center'});input.focus();status.textContent='Сначала вставь ссылку на твой Colab в поле выше.'}})}
+ try{const saved=localStorage.getItem('xorGuideColabUrl');if(saved){input.value=saved;setBase(saved)}}catch(e){}
+})();
+</script></body></html>

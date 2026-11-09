@@ -1,0 +1,371 @@
+# Как использовать Xberg API для распознавания документов в собственный JSON
+
+Xberg — это движок для извлечения информации из PDF, изображений, Word, Excel и других форматов.
+
+Главная возможность для твоей задачи — Structured Extraction: ты сам задаёшь структуру JSON, а Xberg распознаёт документ и пытается заполнить нужные поля.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://docs.xberg.io\&sz=32)
+
+Xberg
+
+Например, ты загружаешь PDF со счётом, а хочешь получить:
+
+```
+{
+  "invoice_number": "INV-2026-001",
+  "date": "2026-11-09",
+  "seller": {
+    "name": "ООО Ромашка",
+    "inn": "7701234567"
+  },
+  "total": 15000.50,
+  "currency": "RUB",
+  "items": [
+    {
+      "name": "Услуга доставки",
+      "quantity": 1,
+      "price": 15000.50
+    }
+  ]
+}
+```
+
+Это пример желаемого результата, а не жёстко заданный формат Xberg.
+
+## 1. Как всё работает
+
+Процесс состоит из двух основных этапов:
+
+1. OCR / Extraction — Xberg извлекает текст, таблицы и содержимое документа. Для сканов использует OCR.
+2. Structured Extraction — LLM получает извлечённое содержимое и JSON Schema, после чего формирует структурированный результат.
+
+Важно: `output_format: "json"` и `structured_extraction` — не одно и то же. Первый параметр задаёт формат технического ответа, второй отвечает за заполнение твоих бизнес-полей.
+
+Для Structured Extraction необходима поддержка LLM (`liter-llm`) и настроенная модель — облачная или локальная.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://docs.xberg.io\&sz=32)
+
+Xberg+1
+
+## 2. Запуск Xberg как REST API
+
+Самый удобный вариант — Docker. Xberg запускается у тебя на сервере, а приложение обращается к нему обычными HTTP-запросами.
+
+Убедись, что установлен Docker, и задай API-ключ LLM-провайдера.
+
+```
+export OPENAI_API_KEY="твой_api_ключ"
+```
+
+Запусти Xberg:
+
+```
+docker run -d \
+  --name xberg \
+  -p 127.0.0.1:8000:8000 \
+  -e OPENAI_API_KEY \
+  ghcr.io/xberg-io/xberg:latest \
+  serve -H 0.0.0.0 -p 8000
+```
+
+Здесь используется локальный порт `8000`, а Xberg выступает самостоятельным API-сервисом. Проверь:
+
+```
+curl http://localhost:8000/health
+```
+
+Документация: [Docker Deployment](https://docs.xberg.io/guides/docker/?utm_source=chatgpt.com) и [API Server](https://docs.xberg.io/guides/api-server/?utm_source=chatgpt.com). Для работы с LLM сборка Xberg должна включать поддержку `liter-llm`.
+
+## 3. Создание собственной JSON Schema
+
+JSON Schema — это описание полей, которые Xberg должен вернуть после распознавания.
+
+Создай файл `schema.json`:
+
+```
+
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "invoice_number": {
+      "type": ["string", "null"],
+      "description": "Номер счета"
+    },
+    "date": {
+      "type": ["string", "null"],
+      "description": "Дата YYYY-MM-DD"
+    },
+    "seller": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": ["string", "null"]
+        },
+        "inn": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["name", "inn"]
+    },
+    "total": {
+      "type": ["number", "null"],
+      "description": "Итоговая сумма"
+    },
+    "currency": {
+      "type": ["string", "null"]
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "quantity": {"type": "number"},
+          "price": {"type": "number"}
+        },
+        "required": ["name", "quantity", "price"]
+      }
+    }
+  },
+  "required": [
+    "invoice_number",
+    "date",
+    "seller",
+    "total",
+    "currency",
+    "items"
+  ]
+}
+
+```
+
+Здесь:
+
+- `properties` определяет имена и типы полей.
+- `required` задаёт обязательные ключи JSON.
+- `additionalProperties: false` запрещает дополнительные поля.
+- `["string", "null"]` позволяет вернуть `null`, если значение не найдено.
+- `items` описывает вложенный массив товаров или услуг.
+
+`strict: true` будет задан в настройке Structured Extraction. Он помогает соблюдать схему, но не гарантирует фактическую
+льность распознанных значений.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://docs.xberg.io\&sz=32)
+
+Xberg
+
+## 4. Настройка Xberg для OCR + JSON
+
+Теперь создаём конфигурацию запроса. Она передаётся в multipart-поле `config`.
+
+```
+{
+  "ocr": {
+    "backend": "tesseract",
+    "language": ["rus", "eng"]
+  },
+  "structured_extraction": {
+    "schema_name": "invoice",
+    "strict": true,
+    "llm": {
+      "model": "openai/gpt-4o-mini"
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "invoice_number": {
+          "type": "string"
+        }
+      },
+      "required": ["invoice_number"],
+      "additionalProperties": false
+    }
+  }
+}
+```
+
+Это сокращённая конфигурация для одного поля. В реальном запросе вместо короткой `schema` вставляется содержимое файла `schema.json` из предыдущего шага.
+
+При использовании `tesseract` коды `rus` и `eng` означают русский и английский языки. В официальном Docker-образе языковые данные для них предусмотрены.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://docs.xberg.io\&sz=32)
+
+Xberg+1
+
+## 5. Отправка файла через HTTP API
+
+Xberg использует:
+
+POST
+
+`/extract`
+
+Content-Type: multipart/form-data
+
+| Поле            | Содержимое                                    |
+| --------------- | --------------------------------------------- |
+| `files`         | PDF, JPG, PNG и т. д.                         |
+| `config`        | JSON-конфигурация OCR и Structured Extraction |
+| `output_format` | Необязательный формат содержимого             |
+
+Пример через `curl`, если полная конфигурация сохранена в `config.json`:
+
+```
+curl -X POST \
+  http://localhost:8000/extract \
+  -F "files=@invoice.pdf" \
+  -F "config=$(cat config.json)" \
+  -o result.json
+```
+
+API возвращает стандартную оболочку результата. Твой пользовательский JSON находится по адресу:
+
+```
+results[0].structured_output
+```
+
+Например, ответ может выглядеть так (другие служебные поля опущены):
+
+```
+{
+  "results": [
+    {
+      "content": "Счет INV-2026-001 ...",
+      "structured_output": {
+        "invoice_number": "INV-2026-001",
+        "date": "2026-11-09",
+        "seller": {
+          "name": "ООО Ромашка",
+          "inn": "7701234567"
+        },
+        "total": 15000.50,
+        "currency": "RUB",
+        "items": [
+          {
+            "name": "Услуга доставки",
+            "quantity": 1,
+            "price": 15000.50
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "inputs": 1,
+    "results": 1,
+    "errors": 0
+  }
+}
+```
+
+При ошибке структурирования `structured_output` может отсутствовать или быть `null`, даже если основной текст документа успешно извлечён. Проверяй также `processing_warnings`.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://docs.xberg.io\&sz=32)
+
+Xberg+1
+
+## 6. Полный пример на Python
+
+Это пример, который можно использовать в своём backend: программа отправляет документ в Xberg REST API, передаёт свою схему и сохраняет только нужный JSON.
+
+Установи зависимости:
+
+```
+pip install requests jsonschema
+```
+
+Создай `recognize.py`:
+
+```
+import jsonfrom pathlib import Pathimport requestsfrom jsonschema import validateXBERG_URL = "http://localhost:8000/extract"# Загружаем собственную схемуschema = json.loads(    Path("schema.json").read_text(encoding="utf-8"))# Конфигурация извлеченияconfig = {    "ocr": {        "backend": "tesseract",        "language": ["rus", "eng"]    },    "structured_extraction": {        "schema_name": "invoice",        "strict": True,        "schema": schema,        "llm": {            "model": "openai/gpt-4o-mini"        }    }}def recognize(file_path: str) -> dict:    path = Path(file_path)    with path.open("rb") as f:        response = requests.post(            XBERG_URL,
+```
+
+Запусти:
+
+```
+python recognize.py
+```
+
+На выходе получится `invoice.json` — только твой JSON, без служебных полей Xberg. Код предполагает, что локальный Xberg запущен, а доступ к LLM настроен.
+
+## 7. Как управлять качеством распознавания
+
+### Настройка правил извлечения
+
+Помимо JSON Schema, Xberg поддерживает пользовательский `prompt`. Например, можно указать, что итоговую сумму нужно брать из поля «Всего к оплате», а не из суммы без НДС.
+
+В объект `structured_extraction` можно добавить:
+
+```
+"prompt": """Извлеки данные из документа.Правила:- Не выдумывай отсутствующие значения.- Для неизвестных полей используй null.- Даты преобразуй в YYYY-MM-DD.- Итоговую сумму бери из "Всего к оплате".- Сохраняй все позиции товаров.Документ:{{ content }}JSON Schema:{{ schema }}"""
+```
+
+Xberg поддерживает Jinja2-переменные `content`, `schema`, `schema_name` и `schema_description`.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://docs.xberg.io\&sz=32)
+
+Xberg
+
+### Что выбрать для OCR
+
+| Тип документа         | Рекомендация                      |
+| --------------------- | --------------------------------- |
+| PDF с текстовым слоем | Обычное извлечение Xberg          |
+| Качественный скан     | Tesseract OCR                     |
+| Фото плохого качества | VLM OCR                           |
+| Рукописный текст      | VLM OCR                           |
+| Сложные таблицы       | Проверять результат с помощью VLM |
+
+Для принудительного OCR можно добавить в конфигурацию верхнего уровня `"force_ocr": true`. Но на обычных PDF с текстовым слоем это зачастую лишняя обработка.
+
+### Можно ли без OpenAI?
+
+Да. Xberg поддерживает локальные LLM, например через Ollama. Для этого вместо облачной модели задаётся:
+
+```
+{
+  "llm": {
+    "model": "ollama/llama3.2"
+  }
+}
+```
+
+При этом Ollama должен быть запущен, модель — загружена, а Xberg — иметь сетевой доступ к серверу Ollama. Если Xberg работает внутри Docker, адрес `localhost` внутри контейнера не указывает на хостовую машину. При необходимости укажи доступный контейнеру `base_url`.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://docs.xberg.io\&sz=32)
+
+Xberg
+
+## 8. Что я рекомендую для production
+
+Для реального сервиса распознавания я бы построил архитектуру так:
+
+Твой backend / API
+
+Приём документа, выбор JSON Schema
+
+Xberg
+
+OCR + извлечение текста и таблиц
+
+LLM
+
+Преобразование в твою JSON Schema
+
+JSON Schema Validation + бизнес-проверки
+
+Проверка типов, сумм, дат, ИНН
+
+База данных / CRM / ERP
+
+Особенно важно проверять не только синтаксис JSON, но и значения: например, что сумма товарных позиций совпадает с итогом. Также стоит сохранять оригинальный файл, сырой извлечённый текст и предупреждения для диагностики. Не открывай Xberg API напрямую в интернет без авторизации и ограничений доступа.
+
+Официальные источники: [REST API](https://docs.xberg.io/guides/api-server/?utm_source=chatgpt.com) · [Structured Extraction](https://docs.xberg.io/guides/structured-extraction/?utm_source=chatgpt.com) · [LLM Integration](https://docs.xberg.io/guides/llm-integration/?utm_source=chatgpt.com).
+
+Уточню один момент: что именно ты планируешь распознавать — счета, накладные, паспорта, договоры, чеки или произвольные документы?
+
+От этого зависит, как лучше составить JSON Schema и какие настройки OCR/LLM использовать, чтобы результат был максимально точным. прави
